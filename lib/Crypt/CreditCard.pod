@@ -51,7 +51,8 @@ This module uses the United States Government's Advanced Encryption Standard
 (AES/Rijndael) with 256-bit keys to encrypt a credit card, and optionally a
 CVV2 number, expiration month and year. The encrypted representation, which
 includes all the given credit card components, is suitable for storing in a
-binary field of a database, e.g., VARCHAR BINARY.
+binary field of a database, e.g., BLOB (for the default datasize), or VARCHAR
+BINARY (if you manually decrease the datasize).
 
 In order to encrypt, a password (something the user knows) and a key (something
 the user has) must first be specified. The password that the user uses to log
@@ -104,7 +105,7 @@ is optional, and by default is set to 256.
 
 =item * B<datasize>
 
-Gets or sets the keylength, which is usually one of: 128, 192 or 256. This
+Gets or sets the datasize, which is usually one of: 128, 192 or 256. This
 method is optional, and by default is set to 256. The datasize must be a
 multiple of 32, and greater than or equal to 96.
 
@@ -209,30 +210,32 @@ An object reference is rendered unusuable for any further access after an
 encrypt() is called against it.
 
 By default, strength() is set to use /dev/random, however if you don't desire
-blocking for the purpose of more random data, consider setting strength() to
-use /dev/urandom. The following excerpt from Crypt::Random states, "The
-/dev/random driver maintains an estimate of true randomness in the pool and
-decreases it every time random strings are requested for use. When the estimate
-goes down to zero, the routine blocks and waits for the occurrence of
-non-deterministic events to refresh the pool. When the routine is blocked,
-Crypt::Random's read() will be blocked till desired amount of random bytes have
-been read off of the device. The /dev/random kernel module also provides
-another interface, /dev/urandom, that does not wait for the entropy-pool to
-recharge and returns as many bytes as requested. For applications that must not
-block (for a potentially long time) should use /dev/urandom. /dev/random should
-be reserved for instances where very high quality randomness is desired. If
-there's a hardware random number generator available, for instance the Intel
-i8x0 random number generator, please use it instead of /dev/random! It'll be
-high quality, a lot faster and it won't block! Usually your OS will provide
-access to the RNG as a device, eg (/dev/intel_rng)."
+blocking and decreased speed for the purpose of more random data, consider
+setting strength() to use /dev/urandom. The following excerpt from
+Crypt::Random states, "The /dev/random driver maintains an estimate of true
+randomness in the pool and decreases it every time random strings are requested
+for use. When the estimate goes down to zero, the routine blocks and waits for
+the occurrence of non-deterministic events to refresh the pool. When the
+routine is blocked, Crypt::Random's read() will be blocked till desired amount
+of random bytes have been read off of the device. The /dev/random kernel module
+also provides another interface, /dev/urandom, that does not wait for the
+entropy-pool to recharge and returns as many bytes as requested. For
+applications that must not block (for a potentially long time) should use
+/dev/urandom. /dev/random should be reserved for instances where very high
+quality randomness is desired. If there's a hardware random number generator
+available, for instance the Intel i8x0 random number generator, please use it
+instead of /dev/random! It'll be high quality, a lot faster and it won't block!
+Usually your OS will provide access to the RNG as a device, eg
+(/dev/intel_rng)."
 
 IN ORDER TO BE GUARANTEED NOMINAL OPERATION, YOU MUST check for errstr() on the
 following methods: mode(), strength(), keylength(), datasize(), cvv2(),
-month(), year(), number(), encrypt(), decrypt().
+month(), year(), number(), encrypt(), and decrypt().
 
 =head1 BUGS
 
-  Please report any bugs to http://rt.cpan.org/. Patches are most welcome.
+  Please report any bugs to (patches welcome):
+  http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Crypt-CreditCard
 
 =head1 COPYRIGHT
 

@@ -1,4 +1,9 @@
 Revision history for Perl extension Crypt::CreditCard.
 
+1.11_01 Mon Nov 24 15:10:00 2003
+        - Tweaked _is_string such that it also considers a "B::PVIV" a string
+        - Added missing die statements to errstr checks in the test suite
+        - Fixed up the documentation a bit
+
 1.10_01 Sun Nov 23 23:30:00 2003
         - Initial release

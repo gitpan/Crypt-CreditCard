@@ -6,21 +6,21 @@ BEGIN { plan tests => 353 };
 
 for (1..100) {
 	my $testcard = Crypt::CreditCard->new();
-	$testcard->strength('/dev/urandom') || $testcard->errstr();
+	$testcard->strength('/dev/urandom') || die $testcard->errstr();
 	my $testkey = $testcard->key();
 	ok(length($testkey) == 32);
 }
 
 for (1..100) {
 	my $testcard = Crypt::CreditCard->new();
-	$testcard->strength('/dev/urandom') || $testcard->errstr();
+	$testcard->strength('/dev/urandom') || die $testcard->errstr();
 	my $testpad = $testcard->_gen_pad();
 	ok(length($testpad) == 4);
 }
 
 for (1..100) {
 	my $testcard = Crypt::CreditCard->new();
-	$testcard->strength('/dev/urandom') || $testcard->errstr();
+	$testcard->strength('/dev/urandom') || die $testcard->errstr();
 	my $testpad = $testcard->_pad();
 	ok(length($testpad) == 352);
 }
@@ -40,15 +40,15 @@ for (1..100) {
 {
 	my $testcard = Crypt::CreditCard->new();
 	ok($testcard->mode() eq 'cbc');
-	$testcard->mode('ecb') || $testcard->errstr();
+	$testcard->mode('ecb') || die $testcard->errstr();
 	ok($testcard->mode() eq 'ecb');
-	$testcard->mode('cbc') || $testcard->errstr();
+	$testcard->mode('cbc') || die $testcard->errstr();
 	ok($testcard->mode() eq 'cbc');
-	$testcard->mode('cfb') || $testcard->errstr();
+	$testcard->mode('cfb') || die $testcard->errstr();
 	ok($testcard->mode() eq 'cfb');
-	$testcard->mode('ofb') || $testcard->errstr();
+	$testcard->mode('ofb') || die $testcard->errstr();
 	ok($testcard->mode() eq 'ofb');
-	$testcard->mode('ctr') || $testcard->errstr();
+	$testcard->mode('ctr') || die $testcard->errstr();
 	ok($testcard->mode() eq 'ctr');
 }
 
@@ -65,31 +65,31 @@ for (1..100) {
 {
 	my $testcard = Crypt::CreditCard->new();
 	ok($testcard->strength() eq '/dev/random');
-	$testcard->strength('/dev/urandom') || $testcard->errstr();
+	$testcard->strength('/dev/urandom') || die $testcard->errstr();
 	ok($testcard->strength() eq '/dev/urandom');
-	$testcard->strength('/dev/random') || $testcard->errstr();
+	$testcard->strength('/dev/random') || die $testcard->errstr();
 	ok($testcard->strength() eq '/dev/random');
 }
 
 {
 	my $testcard = Crypt::CreditCard->new();
 	ok($testcard->keylength() == 256);
-	$testcard->keylength(128) || $testcard->errstr();
+	$testcard->keylength(128) || die $testcard->errstr();
 	ok($testcard->keylength() == 128);
-	$testcard->keylength(192) || $testcard->errstr();
+	$testcard->keylength(192) || die $testcard->errstr();
 	ok($testcard->keylength() == 192);
-	$testcard->keylength(256) || $testcard->errstr();
+	$testcard->keylength(256) || die $testcard->errstr();
 	ok($testcard->keylength() == 256);
 }
 
 {
 	my $testcard = Crypt::CreditCard->new();
 	ok($testcard->datasize() == 256);
-	$testcard->datasize(128) || $testcard->errstr();
+	$testcard->datasize(128) || die $testcard->errstr();
 	ok($testcard->datasize() == 128);
-	$testcard->datasize(192) || $testcard->errstr();
+	$testcard->datasize(192) || die $testcard->errstr();
 	ok($testcard->datasize() == 192);
-	$testcard->datasize(256) || $testcard->errstr();
+	$testcard->datasize(256) || die $testcard->errstr();
 	ok($testcard->datasize() == 256);
 }
 
@@ -132,13 +132,13 @@ for (1..100) {
 	my $year = '03';
 	my $password = 'foo';
 
-	$card->strength('/dev/urandom') || $card->errstr();
-	$card->number($number) || $card->errstr();
-	$card->cvv2($cvv2) || $card->errstr();
-	$card->month($month) || $card->errstr();
-	$card->year($year) || $card->errstr();
+	$card->strength('/dev/urandom') || die $card->errstr();
+	$card->number($number) || die $card->errstr();
+	$card->cvv2($cvv2) || die $card->errstr();
+	$card->month($month) || die $card->errstr();
+	$card->year($year) || die $card->errstr();
 	$card->password($password);
-	my $ciphertext = $card->encrypt() || $card->errstr();
+	my $ciphertext = $card->encrypt() || die $card->errstr();
 	ok(not defined $card->{_strength});
 	ok(not defined $card->{_number});
 	ok(not defined $card->{_password});
@@ -150,7 +150,7 @@ for (1..100) {
 	my $car = Crypt::CreditCard->new();
 	$car->key($key);
 	$car->password('foo');
-	$car->decrypt($ciphertext) || $car->errstr();
+	$car->decrypt($ciphertext) || die $car->errstr();
 
 	ok($number, $car->number());
 	ok($cvv2, $car->cvv2());
@@ -165,10 +165,10 @@ for (1..100) {
 	my $number = '5276440065421319';
 	my $password = 'bar';
 
-	$card->strength('/dev/urandom') || $card->errstr();
-	$card->number($number) || $card->errstr();
+	$card->strength('/dev/urandom') || die $card->errstr();
+	$card->number($number) || die $card->errstr();
 	$card->password($password);
-	my $ciphertext = $card->encrypt() || $card->errstr();
+	my $ciphertext = $card->encrypt() || die $card->errstr();
 	ok(not defined $card->{_strength});
 	ok(not defined $card->{_number});
 	ok(not defined $card->{_password});
@@ -177,7 +177,7 @@ for (1..100) {
 	my $car = Crypt::CreditCard->new();
 	$car->key($key);
 	$car->password('bar');
-	$car->decrypt($ciphertext) || $car->errstr();
+	$car->decrypt($ciphertext) || die $car->errstr();
 
 	ok($number, $car->number());
 	ok($password, $car->password());
@@ -190,14 +190,15 @@ for (1..100) {
 	my $month = '05';
 	my $year = '2004';
 
-	$testcard->strength('/dev/urandom') || $testcard->errstr();
-	$testcard->number($number) || $testcard->errstr();
-	$testcard->cvv2($cvv2) || $testcard->errstr();
-	$testcard->month($month) || $testcard->errstr();
-	$testcard->year($year) || $testcard->errstr();
+	$testcard->strength('/dev/urandom') || die $testcard->errstr();
+	$testcard->number($number) || die $testcard->errstr();
+	$testcard->cvv2($cvv2) || die $testcard->errstr();
+	$testcard->month($month) || die $testcard->errstr();
+	$testcard->year($year) || die $testcard->errstr();
 
 	my $packed = $testcard->_pack_cc();
 	my ($onumber, $ocvv2, $omonth, $oyear) = $testcard->_unpack_cc($packed);
+	die $testcard->errstr() if not $onumber;
 
 	ok($number, $onumber);
 	ok($cvv2, $ocvv2);

@@ -1,5 +1,5 @@
-# $Revision: 1.10 $
-# $Id: CreditCard.pm,v 1.10 2003/11/24 04:08:36 afoxson Exp $
+# $Revision: 1.11 $
+# $Id: CreditCard.pm,v 1.11 2003/11/24 20:07:10 afoxson Exp $
 
 # Crypt::CreditCard - 256-bit AES credit card encryption
 # Copyright (c) 2003 Adam J. Foxson. All rights reserved.
@@ -26,7 +26,7 @@ use Digest::MD5 qw(md5);
 use B; # lathos++
 use vars qw($VERSION);
 
-($VERSION) = ('$Revision: 1.10 $' =~ /\s+(\d+\.\d+)\s+/)[0] . '_01';
+($VERSION) = ('$Revision: 1.11 $' =~ /\s+(\d+\.\d+)\s+/)[0] . '_01';
 
 local $^W = 1;
 
@@ -258,7 +258,8 @@ sub number {
 sub _is_string {
 	my ($self, $target) = @_;
 
-	if (ref B::svref_2object(\$target) eq "B::PV") { # lathos++
+	if (ref B::svref_2object(\$target) eq "B::PV" or
+		ref B::svref_2object(\$target) eq "B::PVIV") { # lathos++
 		return 1;
 	}
 	else {
