@@ -2,7 +2,41 @@ use Test;
 use strict;
 use Crypt::CreditCard;
 
-BEGIN { plan tests => 353 };
+BEGIN { plan tests => 359 };
+
+{
+	my $testcard = Crypt::CreditCard->new();
+	my $number = '5276440065421319';
+
+	$testcard->strength('/dev/urandom') || die $testcard->errstr();
+	$testcard->number($number) || die $testcard->errstr();
+
+	$testcard->_pad_missing();
+
+	ok(length($testcard->{_cvv2}) == 4);
+	ok(length($testcard->{_month}) == 2);
+	ok(length($testcard->{_year}) == 4);
+}
+
+{
+	my $testcard = Crypt::CreditCard->new();
+	my $number = '5276440065421319';
+	my $cvv2 = '291';
+	my $month = '5';
+	my $year = '04';
+
+	$testcard->strength('/dev/urandom') || die $testcard->errstr();
+	$testcard->number($number) || die $testcard->errstr();
+	$testcard->cvv2($cvv2) || die $testcard->errstr();
+	$testcard->month($month) || die $testcard->errstr();
+	$testcard->year($year) || die $testcard->errstr();
+
+	$testcard->_pad_missing();
+
+	ok(length($testcard->{_cvv2}) == 4);
+	ok(length($testcard->{_month}) == 2);
+	ok(length($testcard->{_year}) == 4);
+}
 
 for (1..100) {
 	my $testcard = Crypt::CreditCard->new();

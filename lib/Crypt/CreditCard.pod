@@ -33,10 +33,10 @@ Crypt::CreditCard - 256-bit AES credit card encryption
     $card->key($key); # acquire from a secure cookie
     $card->decrypt($ciphertext) || die $card->errstr(); # get from db
 
-    my $number = $card->number() || die $card->errstr(); # 5276440065421319
-    my $cvv2 = $card->cvv2() || die $card->errstr(); # 2345
-    my $month = $card->month() || die $card->errstr(); # 12
-    my $year = $card->year() || die $card->errstr(); # 03
+    my $number = $card->number(); # 5276440065421319
+    my $cvv2 = $card->cvv2(); # 2345
+    my $month = $card->month(); # 12
+    my $year = $card->year(); # 03
   }
 
 =head1 DESCRIPTION
@@ -51,8 +51,8 @@ This module uses the United States Government's Advanced Encryption Standard
 (AES/Rijndael) with 256-bit keys to encrypt a credit card, and optionally a
 CVV2 number, expiration month and year. The encrypted representation, which
 includes all the given credit card components, is suitable for storing in a
-binary field of a database, e.g., BLOB (for the default datasize), or VARCHAR
-BINARY (if you manually decrease the datasize).
+database field, e.g., TEXT (for the default datasize), or VARCHAR (if you
+manually decrease the datasize).
 
 In order to encrypt, a password (something the user knows) and a key (something
 the user has) must first be specified. The password that the user uses to log
@@ -62,9 +62,9 @@ should ideally be encrypted using, say, SQL's PASSWORD(). The key is an
 automatically generated crytographically secure 256-bit randomly generated
 number. This key is suitable for storage in, say, a *secure* cookie.
 
-Before and after a credit card number is encrypted and decrypted, a check is
-made as to the validity of the credit card number using a mod-10 check. An
-error will be raised if the credit card number is invalid.
+Before a credit card number is encrypted, a check is made as to the validity of
+the credit card number using a mod-10 check. An error will be raised if the
+credit card number is invalid.
 
 In the interest of heightened reliability and security an MD5 checksum is
 stored along with the credit card information, the key is xor'd against the
@@ -85,13 +85,12 @@ Constructor. Takes no arguments. Returns a credit card object.
 
 =item * B<errstr>
 
-Gets the error string (if applicable)
+Gets the error string (if applicable). See 'CAVEATS'.
 
 =item * B<key>
 
-Generates or sets a 256-bit (by default) crytographically secure
-number suitable for storage in, say, a secure cookie. This method is
-mandatory.
+Generates or sets a 256-bit (by default) crytographically secure number
+suitable for storage in, say, a secure cookie. This method is mandatory.
 
 =item * B<password>
 
@@ -120,18 +119,20 @@ optional, and by default is set to /dev/random.
 Gets or sets the cvv2 number. See: 
 http://www.google.com/search?q=CVV2&ie=UTF-8&oe=UTF-8. This method requires a
 string representation of a number, not a number (see CAVEATS). This method is
-optional.
+optional. If given, argument must be integral and between 3 and 4 digits.
 
 =item * B<month>
 
 Gets or sets the expiration month. This method requires a string representation
-of a number, not a number (see CAVEATS). This method is optional.
+of a number, not a number (see CAVEATS). This method is optional. If given,
+argument must be integral and either 1 or 2 digits.
 
 =item * B<year>
 
 Gets or sets the expiration year. This can be either, for example, "04" or
 "2004". This method requires a string representation of a number, not a number
-(see CAVEATS). This method is optional.
+(see CAVEATS). This method is optional. If given, argument must be integral and
+either 2 or 4 digits.
 
 =item * B<number>
 
@@ -162,8 +163,7 @@ This is optional and defaults to cipher block chaining mode.
 
 =item * B<iv>
 
-Gets or sets the initial vector (see Crypt::Rijndael for details). This is
-optional.
+Gets or sets the initial vector (see Crypt::Rijndael for details).
 
 =back
 
@@ -174,6 +174,11 @@ optional.
 =item * B<_pack_cc>
 
 =item * B<_unpack_cc>
+
+=item * B<_pad_missing>
+
+Pads cvv2, month, and year with random cryptographically secure data if they
+were not given.
 
 =item * B<_is_string>
 
@@ -207,11 +212,11 @@ If you attempt to call any of the above methods with numeric arguments,
 Crypt::CreditCard will detect it and generate an error.
 
 An object reference is rendered unusuable for any further access after an
-encrypt() is called against it.
+encrypt() is called against it. This is a security feature.
 
-By default, strength() is set to use /dev/random, however if you don't desire
-blocking and decreased speed for the purpose of more random data, consider
-setting strength() to use /dev/urandom. The following excerpt from
+By default, strength() is set to use /dev/random, however IF YOU DON'T DESIRE
+BLOCKING AND DECREASED SPEED FOR THE PURPOSE OF MORE RANDOM DATA, CONSIDER
+SETTING strength() TO USE /dev/urandom. The following excerpt from
 Crypt::Random states, "The /dev/random driver maintains an estimate of true
 randomness in the pool and decreases it every time random strings are requested
 for use. When the estimate goes down to zero, the routine blocks and waits for
@@ -229,8 +234,9 @@ Usually your OS will provide access to the RNG as a device, eg
 (/dev/intel_rng)."
 
 IN ORDER TO BE GUARANTEED NOMINAL OPERATION, YOU MUST check for errstr() on the
-following methods: mode(), strength(), keylength(), datasize(), cvv2(),
-month(), year(), number(), encrypt(), and decrypt().
+following methods: mode(), strength(), keylength(), datasize(), encrypt(), and
+decrypt(). Additionally, you must check for errstr() on the following methods,
+but *only* when you are assigning to them: cvv2(), month(), year(), number().
 
 =head1 BUGS
 

@@ -1,0 +1,5 @@
+This distribution requires Crypt::Random, which requires Math::Pari. Math::Pari
+is notably non-trivial to install under Mac OS X. The following webpage may be
+of use getting Math::Pari installed under Mac OS X:
+
+http://www.boksa.de/tutorials/pari_macosx.mpp

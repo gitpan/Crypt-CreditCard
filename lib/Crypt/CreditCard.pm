@@ -1,5 +1,5 @@
-# $Revision: 1.11 $
-# $Id: CreditCard.pm,v 1.11 2003/11/24 20:07:10 afoxson Exp $
+# $Revision: 1.12 $
+# $Id: CreditCard.pm,v 1.12 2003/11/28 12:29:51 afoxson Exp $
 
 # Crypt::CreditCard - 256-bit AES credit card encryption
 # Copyright (c) 2003 Adam J. Foxson. All rights reserved.
@@ -26,7 +26,7 @@ use Digest::MD5 qw(md5);
 use B; # lathos++
 use vars qw($VERSION);
 
-($VERSION) = ('$Revision: 1.11 $' =~ /\s+(\d+\.\d+)\s+/)[0] . '_01';
+($VERSION) = ('$Revision: 1.12 $' =~ /\s+(\d+\.\d+)\s+/)[0] . '_01';
 
 local $^W = 1;
 
@@ -49,6 +49,48 @@ sub new {
 	};
 
 	return bless $self, $class;
+}
+
+sub _pad_missing {
+	my $self = shift;
+
+	for my $type (qw(_cvv2 _month _year)) {
+		if (not $self->{$type}) {
+			my $padding = $self->_gen_pad();
+
+			if ($type eq '_month') {
+				my $pad = substr $padding, 0, 2;
+				$self->{$type} = $pad;
+			}
+			else {
+				$self->{$type} = $padding;
+			}
+		}
+	}
+
+	for my $type (qw(_cvv2 _year)) {
+		if (length($self->{$type}) < 4) {
+			my $amount = 4 - length $self->{$type};
+
+			if ($amount) {
+				my $padding = $self->_gen_pad();
+				my $pad = substr $padding, 0, $amount;
+
+				$self->{$type} .= $pad;
+			}
+		}
+	}
+
+	if (length($self->{_month}) < 2) {
+		my $amount = 2 - length $self->{_month};
+
+		if ($amount) {
+			my $padding = $self->_gen_pad();
+			my $pad = substr $padding, 0, $amount;
+
+			$self->{_month} .= $pad;
+		}
+	}
 }
 
 sub mode {
@@ -191,10 +233,23 @@ sub datasize {
 
 sub cvv2 {
 	my $self = shift;
+
+	$self->{_cvv2} =~ s/\D//g if $self->{_cvv2};
+
 	if (@_) {
 		my $cvv2 = shift;
 		unless ($self->_is_string($cvv2)) {
-			$self->errstr(__PACKAGE__ .  ": cvv2(): cvv2 must be a sting");
+			$self->errstr(__PACKAGE__ . ": cvv2(): cvv2 must be a sting");
+			return 0;
+		}
+		unless ($cvv2 =~ /^\d+$/) {
+			$self->errstr(__PACKAGE__ .
+				": cvv2(): cvv2 must be comprised of only digits");
+			return 0;
+		}
+		unless (length($cvv2) == 3 or length($cvv2) == 4) {
+			$self->errstr(__PACKAGE__ .
+				": cvv2(): cvv2 must be three or four digits long");
 			return 0;
 		}
 		$self->{_cvv2} = $cvv2;
@@ -204,10 +259,23 @@ sub cvv2 {
 
 sub month {
 	my $self = shift;
+
+	$self->{_month} =~ s/\D//g if $self->{_month};
+
 	if (@_) {
 		my $month = shift;
 		unless ($self->_is_string($month)) {
-			$self->errstr(__PACKAGE__ .  ": month(): month must be a sting");
+			$self->errstr(__PACKAGE__ . ": month(): month must be a sting");
+			return 0;
+		}
+		unless ($month =~ /^\d+$/) {
+			$self->errstr(__PACKAGE__ .
+				": month(): month must be comprised of only digits");
+			return 0;
+		}
+		unless (length($month) == 1 or length($month) == 2) {
+			$self->errstr(__PACKAGE__ .
+				": month(): month must be one or two digits long");
 			return 0;
 		}
 		$self->{_month} = $month;
@@ -217,14 +285,28 @@ sub month {
 
 sub year {
 	my $self = shift;
+
+	$self->{_year} =~ s/\D//g if $self->{_year};
+
 	if (@_) {
 		my $year = shift;
 		unless ($self->_is_string($year)) {
-			$self->errstr(__PACKAGE__ .  ": year(): year must be a sting");
+			$self->errstr(__PACKAGE__ . ": year(): year must be a sting");
+			return 0;
+		}
+		unless ($year =~ /^\d+$/) {
+			$self->errstr(__PACKAGE__ .
+				": year(): year must be comprised of only digits");
+			return 0;
+		}
+		unless (length($year) == 2 or length($year) == 4) {
+			$self->errstr(__PACKAGE__ .
+				": year(): year must be two or four digits long");
 			return 0;
 		}
 		$self->{_year} = $year;
 	}
+
 	return $self->{_year};
 }
 
@@ -235,23 +317,17 @@ sub number {
 	if ($args) {
 		my $number = shift;
 		unless ($self->_is_string($number)) {
-			$self->errstr(__PACKAGE__ .  ": number(): number must be a sting");
+			$self->errstr(__PACKAGE__ . ": number(): number must be a sting");
 			return 0;
 		}
 		unless ($self->_validate($number)) {
-			$self->errstr(__PACKAGE__ .  ": number(): Invalid credit card " .
+			$self->errstr(__PACKAGE__ . ": number(): Invalid credit card " .
 			"number");
 			return 0;
 		}
 		$self->{_number} = $number;
 	}
-	else {
-		unless ($self->_validate($self->{_number})) {
-			$self->errstr(__PACKAGE__ .  ": number(): Invalid credit card " .
-			"number");
-			return 0;
-		}
-	}
+
 	return $self->{_number};
 }
 
@@ -316,7 +392,7 @@ sub _unpack_cc {
 	my $chk = substr $data, 0, 16, '';
 
 	unless ($chk eq md5($data)) {
-		$self->errstr(__PACKAGE__ .  ": Checksum check failed");
+		$self->errstr(__PACKAGE__ . ": Checksum check failed");
 		return 0;
 	}
 
@@ -342,10 +418,12 @@ sub encrypt {
 
 	if (not defined $self->{_key} or not defined $self->{_number} or
 		not defined $self->{_password}) {
-		$self->errstr(__PACKAGE__ .  ": encrypt(): Missing values for: " .
+		$self->errstr(__PACKAGE__ . ": encrypt(): Missing values for: " .
 			"key, number, and/or password");
 		return 0;
 	}
+
+	$self->_pad_missing();
 
 	my $raw = $self->_pack_cc($self->{_number}, $self->{_cvv2},
 		$self->{_month}, $self->{_year});
@@ -355,7 +433,7 @@ sub encrypt {
 	my $ct = eval {$cipher->encrypt($raw)};
 
 	if ($@) {
-		$self->errstr(__PACKAGE__ .  ": encrypt(): $@");
+		$self->errstr(__PACKAGE__ . ": encrypt(): $@");
 		return 0;
 	}
 
@@ -363,7 +441,7 @@ sub encrypt {
 	$_[0] = {};
 
 	unless ($ct) {
-		$self->errstr(__PACKAGE__ .  ": encrypt(): Problem encrypting");
+		$self->errstr(__PACKAGE__ . ": encrypt(): Problem encrypting");
 		return 0;
 	}
 
@@ -391,7 +469,7 @@ sub decrypt {
 
 	if (not defined $self->{_key} or not defined $ciphertext or
 		not defined $self->{_password}) {
-		$self->errstr(__PACKAGE__ .  ": decrypt(): Missing values for: " .
+		$self->errstr(__PACKAGE__ . ": decrypt(): Missing values for: " .
 			"key, ciphertext, and/or password");
 		return 0;
 	}
@@ -404,26 +482,26 @@ sub decrypt {
 	my $raw = eval {$cipher->decrypt(pack "H*", $ciphertext)};
 
 	if ($@) {
-		$self->errstr(__PACKAGE__ .  ": decrypt(): $@");
+		$self->errstr(__PACKAGE__ . ": decrypt(): $@");
 		return 0;
 	}
 
 	unless ($raw) {
-		$self->errstr(__PACKAGE__ .  ": decrypt(): Problem decrypting");
+		$self->errstr(__PACKAGE__ . ": decrypt(): Problem decrypting");
 		return 0;
 	}
 
 	my ($c, $v, $m, $y) = $self->_unpack_cc($raw);
 
 	if (not $c) {
-		$self->errstr(__PACKAGE__ .  ": decrypt(): ${\($self->errstr())}");
+		$self->errstr(__PACKAGE__ . ": decrypt(): ${\($self->errstr())}");
 		return 0;
 	}
 
-	$self->number($c);
-	$self->cvv2($v);
-	$self->month($m);
-	$self->year($y);
+	$self->{_number} = $c;
+	$self->{_cvv2} = $v;
+	$self->{_month} = $m;
+	$self->{_year} = $y;
 
 	return 1;
 }

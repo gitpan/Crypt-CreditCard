@@ -1,5 +1,14 @@
 Revision history for Perl extension Crypt::CreditCard.
 
+1.12_01 Fri Nov 28 07:30:00 2003
+        - Better error checking on cvv2(), month(), and year()
+          - verify arguments are integral
+          - verify arguments are of the correct length
+        - Auto generate replacement padding for optional cvv2, month, and year
+        - Updated the documentation
+        - Added a few more tests
+        - We no longer check the mod10 validity of card numbers on the way out
+
 1.11_01 Mon Nov 24 15:10:00 2003
         - Tweaked _is_string such that it also considers a "B::PVIV" a string
         - Added missing die statements to errstr checks in the test suite
