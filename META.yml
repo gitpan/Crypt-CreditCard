@@ -1,0 +1,17 @@
+name: Crypt-CreditCard
+version: 1.10_01
+abstract: 256-bit AES credit card encryption
+author: Adam J. Foxson <afoxson@pobox.com>
+license: gpl
+distribution_type: module
+requires:
+  Crypt::Rijndael: 0.04
+  Crypt::Random: 1.13
+  Digest::MD5: 2.30
+no_index:
+  directory:
+    - inc
+private:
+  directory:
+    - inc
+generated_by: Module::Install version 0.27

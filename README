@@ -1,0 +1,235 @@
+NAME
+    Crypt::CreditCard - 256-bit AES credit card encryption
+
+SYNOPSIS
+      use Crypt::CreditCard;
+
+      my $ciphertext;
+      my $password = 'f00b@r'; # acquire from user
+      my $key;
+
+      {
+        # Encryption
+        my $card = Crypt::CreditCard->new();
+        $key = $card->key(); # generates key, suitable for a secure cookie
+
+        $card->number('5276440065421319') || die $card->errstr();
+        $card->cvv2('2345') || die $card->errstr(); # optional, may be omitted
+        $card->month('12') || die $card->errstr(); # optional, may be omitted
+        $card->year('03') || die $card->errstr(); # optional, may be omitted
+        $card->password($password);
+
+        $ciphertext = $card->encrypt() || die $card->errstr(); # store in db
+      }
+
+      {
+        # Decryption
+        my $card = Crypt::CreditCard->new();
+        $card->password($password); # acquire from user
+        $card->key($key); # acquire from a secure cookie
+        $card->decrypt($ciphertext) || die $card->errstr(); # get from db
+
+        my $number = $card->number() || die $card->errstr(); # 5276440065421319
+        my $cvv2 = $card->cvv2() || die $card->errstr(); # 2345
+        my $month = $card->month() || die $card->errstr(); # 12
+        my $year = $card->year() || die $card->errstr(); # 03
+      }
+
+DESCRIPTION
+    Note: You are advised to read the 'CAVEATS' section later in this
+    document. Additionally, until this distribution reaches a non-developer
+    (stable) release stage the interface and implementation may change at
+    any time. It is therefore not recommended to make use of this
+    distribution in a production environment until a non-developer release
+    is made.
+
+    This module uses the United States Government's Advanced Encryption
+    Standard (AES/Rijndael) with 256-bit keys to encrypt a credit card, and
+    optionally a CVV2 number, expiration month and year. The encrypted
+    representation, which includes all the given credit card components, is
+    suitable for storing in a binary field of a database, e.g., VARCHAR
+    BINARY.
+
+    In order to encrypt, a password (something the user knows) and a key
+    (something the user has) must first be specified. The password that the
+    user uses to log into your service that requires secure credit card
+    storage is usually what's used as the password. The password itself, if
+    it's being stored in a databse, should ideally be encrypted using, say,
+    SQL's PASSWORD(). The key is an automatically generated crytographically
+    secure 256-bit randomly generated number. This key is suitable for
+    storage in, say, a *secure* cookie.
+
+    Before and after a credit card number is encrypted and decrypted, a
+    check is made as to the validity of the credit card number using a
+    mod-10 check. An error will be raised if the credit card number is
+    invalid.
+
+    In the interest of heightened reliability and security an MD5 checksum
+    is stored along with the credit card information, the key is xor'd
+    against the password before being used as a basis for encryption, and
+    the credit card information is padded with cryptographically secure
+    data.
+
+    Assuming that someone built a machine that could crack a DES key in one
+    second, it would still take that machine 149 trillion years to crack a
+    128-bit AES key. Crypt::CreditCard, by default, uses 256-bit keys.
+
+PUBLIC METHODS
+    * new
+        Constructor. Takes no arguments. Returns a credit card object.
+
+    * errstr
+        Gets the error string (if applicable)
+
+    * key
+        Generates or sets a 256-bit (by default) crytographically secure
+        number suitable for storage in, say, a secure cookie. This method is
+        mandatory.
+
+    * password
+        Sets the password that will be xor'd against the key prior to
+        encryption. This method is mandatory.
+
+    * keylength
+        Gets or sets the keylength, which must be one of: 128, 192 or 256.
+        This method is optional, and by default is set to 256.
+
+    * datasize
+        Gets or sets the keylength, which is usually one of: 128, 192 or
+        256. This method is optional, and by default is set to 256. The
+        datasize must be a multiple of 32, and greater than or equal to 96.
+
+    * strength
+        Gets or sets the strength of randomness (see Crypt::Random and
+        CAVEATS). This is either /dev/random, /dev/urandom, or an
+        alternative in /dev/. This method is optional, and by default is set
+        to /dev/random.
+
+    * cvv2
+        Gets or sets the cvv2 number. See:
+        http://www.google.com/search?q=CVV2&ie=UTF-8&oe=UTF-8. This method
+        requires a string representation of a number, not a number (see
+        CAVEATS). This method is optional.
+
+    * month
+        Gets or sets the expiration month. This method requires a string
+        representation of a number, not a number (see CAVEATS). This method
+        is optional.
+
+    * year
+        Gets or sets the expiration year. This can be either, for example,
+        "04" or "2004". This method requires a string representation of a
+        number, not a number (see CAVEATS). This method is optional.
+
+    * number
+        Gets or sets the credit card number. The credit card must be valid
+        or an error will be raised. This method requires a string
+        representation of a number, not a number (see CAVEATS). This method
+        is mandatory.
+
+    * encrypt
+        Encrypts the credit card previously given and returns the ciphertext
+        representation. The key(), number(), and password() methods must be
+        called prior to calling encrypt().
+
+    * decrypt
+        Decrypts the credit card information. Takes the ciphertext as an
+        argument. The key(), and password() methods must be called prior to
+        calling decrypt().
+
+    * mode
+        Gets or sets the mode, which is one of the following (see
+        Crypt::Rijndael for details):
+
+        ecb (electronic codebook mode), cbc (cipher block chaining, the
+        default), cfb (128-bit cipher feedback), ofb (128-bit output
+        feedback), ctr (counter mode).
+
+        This is optional and defaults to cipher block chaining mode.
+
+    * iv
+        Gets or sets the initial vector (see Crypt::Rijndael for details).
+        This is optional.
+
+PRIVATE METHODS
+    * _pack_cc
+    * _unpack_cc
+    * _is_string
+        Returns 1 if the argument was a string, 0 otherwise.
+
+    * _validate
+        Returns true if the mod10 passes for the credit card.
+
+    * _pad
+        Generates an amount of crytographically secure padding based upon
+        the datasize by calling gen_pad().
+
+    * _gen_pad
+        Generates 32 bits of crytographically secure padding.
+
+    * _kill
+        Renders the object passed to it unusable for future operations.
+
+CAVEATS
+    The methods: number(), cvv2(), month(), and year() *MUST* be passed
+    string arguments, not numeric arguments. This means that, for example,
+    you must do $card->number('5276440065421319'), and not
+    $card->number(5276440065421319). If you attempt to call any of the above
+    methods with numeric arguments, Crypt::CreditCard will detect it and
+    generate an error.
+
+    An object reference is rendered unusuable for any further access after
+    an encrypt() is called against it.
+
+    By default, strength() is set to use /dev/random, however if you don't
+    desire blocking for the purpose of more random data, consider setting
+    strength() to use /dev/urandom. The following excerpt from Crypt::Random
+    states, "The /dev/random driver maintains an estimate of true randomness
+    in the pool and decreases it every time random strings are requested for
+    use. When the estimate goes down to zero, the routine blocks and waits
+    for the occurrence of non-deterministic events to refresh the pool. When
+    the routine is blocked, Crypt::Random's read() will be blocked till
+    desired amount of random bytes have been read off of the device. The
+    /dev/random kernel module also provides another interface, /dev/urandom,
+    that does not wait for the entropy-pool to recharge and returns as many
+    bytes as requested. For applications that must not block (for a
+    potentially long time) should use /dev/urandom. /dev/random should be
+    reserved for instances where very high quality randomness is desired. If
+    there's a hardware random number generator available, for instance the
+    Intel i8x0 random number generator, please use it instead of
+    /dev/random! It'll be high quality, a lot faster and it won't block!
+    Usually your OS will provide access to the RNG as a device, eg
+    (/dev/intel_rng)."
+
+    IN ORDER TO BE GUARANTEED NOMINAL OPERATION, YOU MUST check for errstr()
+    on the following methods: mode(), strength(), keylength(), datasize(),
+    cvv2(), month(), year(), number(), encrypt(), decrypt().
+
+BUGS
+      Please report any bugs to http://rt.cpan.org/. Patches are most welcome.
+
+COPYRIGHT
+      Copyright (c) 2003 Adam J. Foxson. All rights reserved.
+      Copyright (c) 2003 Marty Pauley. All rights reserved.
+
+LICENSE
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 2 of the License, or (at your
+    option) any later version.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+    Public License for more details.
+
+SEE ALSO
+    * perl
+    * Crypt::Rijndael
+    * Crypt::Random
+    * Digest::MD5
+
+AUTHORS
+    Adam J. Foxson <afoxson@pobox.com>, with patches from Marty Pauley at
+    <kasei@cpan.org>.
+

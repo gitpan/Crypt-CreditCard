@@ -1,0 +1,45 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.37.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It would check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 12549569098cbb0efa8a4aa91f5f38068791fe42 COPYING
+SHA1 9b5221467ec9704b7759de1aacfad0593492cac0 Changes
+SHA1 4047fc42bafa7c7552751f8b131f06617ad36228 INSTALL
+SHA1 f3550badbcdef2d12db3382b106bfd7803d4e5d8 MANIFEST
+SHA1 ccb844c0940cc5f78fbc82ce9f26353c08c7f234 MANIFEST.SKIP
+SHA1 d60d468ce1fe79806369dd9ecd05df88a8f99775 META.yml
+SHA1 0f15426711e8c8f42d31b9c04c348c4fe01e9384 Makefile.PL
+SHA1 8fcb75d53e0e333b7fec7c7e2342206de27526ae README
+SHA1 8a27fc7c92d82f487132ddb818c1206cd1c189c1 inc/ExtUtils/AutoInstall.pm
+SHA1 24583a0d9fd9644c0ce10961039630658c04ddba inc/Module/Install.pm
+SHA1 b431feb7056a1bc5fc36fefb7b71d7e3fc970d0b inc/Module/Install/AutoInstall.pm
+SHA1 afe7ca05acf9028246e70aa6cdbc4f238b12acdd inc/Module/Install/Base.pm
+SHA1 06687525d97773cce10773d77f1762b20ee5e0df inc/Module/Install/Can.pm
+SHA1 c03e641fcc136de2fbdd62ce4e82e2dfa8410962 inc/Module/Install/Fetch.pm
+SHA1 2c8d8bacd52139c3390cd9ea5b8ce3197ab27b90 inc/Module/Install/Include.pm
+SHA1 73e47812c7c610cbca31423dd2ec830807996702 inc/Module/Install/Makefile.pm
+SHA1 1c9f1aa777868095d07681a06a84583aff35caee inc/Module/Install/Metadata.pm
+SHA1 b8ed037b7c924794219a60554d5fc71a90648719 inc/Module/Install/Win32.pm
+SHA1 874d3a1de84e2902826011fb223fe5dfe0169236 lib/Crypt/CreditCard.pm
+SHA1 449d99ca69987ea868189c889ed1c81292eef42e lib/Crypt/CreditCard.pod
+SHA1 875dec3f8dcdfc69f69eaa1a00834f39f4f244df t/0-signature.t
+SHA1 ad9d2eee6c4da9f30304d5080993b490bc534422 t/crypt.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE/wYRoqyhcxth1eKwRAh72AJ9lStIgzuWEPiHC2JHoVYU27kVqSACdHc0B
+fy/7YG32wSufkWqUJXTWrPk=
+=BEZY
+-----END PGP SIGNATURE-----

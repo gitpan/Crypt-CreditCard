@@ -1,0 +1,19 @@
+Crypt::CreditCard
+=================
+
+INSTALLATION
+
+To install this distribution type the following:
+
+	cpansign -v (optional; requires Module::Signature to be installed)
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+DEPENDENCIES
+
+	Crypt::Rijndael 0.04
+	Crypt::Random 1.13
+	Digest::MD5 2.30
+	Module::Signature (optional; for distribution authenticity verification)
